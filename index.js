@@ -263,7 +263,7 @@ function moveActingPlayer(socket, lobby) {
 function getPrevActingPlayer(fromPlayerId, lobby) {
   let index = 1, prevPlayer = "";
   while(prevPlayer == "") {
-    prevPlayer = lobby.seq[(lobby.seq.indexOf(fromPlayerId) - index)%lobby.seq.length][0];
+    prevPlayer = lobby.seq[(lobby.seq.indexOf(fromPlayerId) + lobby.seq.length - index)][0];
     if (lobby.fold.includes(lobby.seq[actingIndex])) {
       index++;
       prevPlayer = "";

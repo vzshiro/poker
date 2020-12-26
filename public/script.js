@@ -146,7 +146,7 @@ function createLobby() {
       savePlayer();
       generateLobby();
     });
-    lobbiesElement.innerHTML = "";
+    $('div.action').innerHTML = "";
   }
 }
 function generateGame() {
@@ -320,7 +320,7 @@ function performAction(e) {
     return;
   }
   socket.emit('proceed round', action)
-  lobbiesElement.innerHTML = "";
+  $('div.action').innerHTML = "";
 }
 function generateLobby() {
   console.log("Lobby", lobbyPlayers)
@@ -426,7 +426,7 @@ function acceptSequence() {
   } else {
     $("#sequence-modal").modal("hide");
     socket.emit("start game", lobbyPlayers.lobby)
-    lobbiesElement.innerHTML = "";
+    $('div.action').innerHTML = "";
   }
 }
 function reconnectOldPlayer() {
@@ -531,7 +531,7 @@ function sendPlayerInfo() {
   }
   socket.emit("player info", player)
   savePlayer();
-  lobbiesElement.innerHTML = "";
+  $('div.action').innerHTML = "";
 }
 function getName() {
   let nameInput = "";
