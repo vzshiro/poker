@@ -3,7 +3,7 @@ var app = express();
 var fs = require("fs");
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-const port = 80;
+const port = process.env.PORT || 3000;
 
 app.use(express.static('public'))
 app.use('/css', express.static('css'))
