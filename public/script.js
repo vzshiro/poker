@@ -212,8 +212,8 @@ function generateCards() {
     })
   } else {
     if (player.cards) {
-      html += `<div class="col-md-12"><h3>Your Cards <span onclick="togglePlayerCard(this)" class="fa fa-eye pointer"></span></h3></div>`;
-      html += '<div id="player-cards" class="col-md-12">'
+      html += `<div class="col-md-12"><h3>Your Cards <span onclick="togglePlayerCard(this)" class="fa fa-eye${hideCards ? "-slash" : ""} pointer"></span></h3></div>`;
+      html += `<div id="player-cards" class="col-md-12 ${hideCards ? "hidden" : ""}">`
       player.cards.forEach(card => {
         html += generatePoker(card)
       })
@@ -224,6 +224,7 @@ function generateCards() {
 }
 function togglePlayerCard(e) {
   let playerCards = document.getElementById("player-cards")
+  hideCards = !hideCards;
   if (hideCards) {
     playerCards.classList.add("hidden");
     e.classList.add("fa-eye-slash")
@@ -233,7 +234,6 @@ function togglePlayerCard(e) {
     e.classList.remove("fa-eye-slash")
     e.classList.add("fa-eye")
   }
-  hideCards = !hideCards;
 }
 function generateHistory() {
   let history = lobbyPlayers.lobby.history.slice(-5).reverse();
