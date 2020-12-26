@@ -201,6 +201,13 @@
         </div>
     </div>
 </body>
+<script>
+    Notification.requestPermission().then(function (permission) {
+        if (permission) {
+            alert("Phone will vibrate on your turn")
+        }
+    })
+</script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/jquery-3.4.1.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>

@@ -183,6 +183,9 @@ function generateGame() {
   lobbiesElement.innerHTML += generateCards();
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
+  if (lobbyPlayers.lobby.actingPlayer == player.id) {
+    window.navigator.vibrate(300);
+  }
 }
 function generatePoker(card) {
   return `<div class="poker-cards">
