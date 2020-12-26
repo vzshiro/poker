@@ -178,7 +178,7 @@ function startRound(lobbyId) {
 }
 function getRandomCardFromLobby(lobby) {
   let randomIndex = Math.floor(Math.random() * lobbyCards[lobby.id].cards.length);
-  return lobbyCards[lobby.id].cards.splice(randomIndex, 1);
+  return lobbyCards[lobby.id].cards.splice(randomIndex, 1)[0];
 }
 function dealPlayerCards(lobby) {
   lobby.players.forEach(p => {
