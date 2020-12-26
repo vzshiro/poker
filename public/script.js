@@ -2,6 +2,7 @@ var socket;
 var player;
 var lobbiesElement;
 var lobbyPlayers = {};
+var hideCards = false;
 const cardText = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const cardSuit = ["S", "H", "C", "D"];
 
@@ -151,9 +152,9 @@ function createLobby() {
 }
 function generateGame() {
   console.log("Generate Game", lobbyPlayers)
+  // <h2>Lobby: ${lobbyPlayers.lobby.name}</h2>
   lobbiesElement.innerHTML = `
   <div class="col-md-12">
-    <h2>Lobby: ${lobbyPlayers.lobby.name}</h2>
     <div class="lobby-user-details">
       ${lobbyPlayers.lobby.seq.reduce((prev, cur) => prev +
         `<p class="${lobbyPlayers.lobby.fold.includes(cur) ? "fold" : ""}">
@@ -223,15 +224,16 @@ function generateCards() {
 }
 function togglePlayerCard(e) {
   let playerCards = document.getElementById("player-cards")
-  if (e.classList.contains("fa-eye-slash")) {
-    playerCards.classList.remove("hidden");
-    e.classList.remove("fa-eye-slash")
-    e.classList.add("fa-eye")
-  } else {
+  if (hideCards) {
     playerCards.classList.add("hidden");
     e.classList.add("fa-eye-slash")
     e.classList.remove("fa-eye")
+  } else {
+    playerCards.classList.remove("hidden");
+    e.classList.remove("fa-eye-slash")
+    e.classList.add("fa-eye")
   }
+  hideCards = !hideCards;
 }
 function generateHistory() {
   let history = lobbyPlayers.lobby.history.slice(-5).reverse();
@@ -363,7 +365,8 @@ function quitLobby() {
   savePlayer();
 }
 function generateUserIcon(playerId) {
-  return `<span style="color: ${lobbyPlayers[playerId].color}" class="fa fa-${lobbyPlayers[playerId].icon}"></span>`;
+  let icon = lobbyPlayers[playerId].icon.split(' ')
+  return `<span style="color: ${lobbyPlayers[playerId].color}" class="${icon.length > 1 ? icon[1] : "fa"} fa-${icon[0]}"></span>`;
 }
 function startGame() {
   if (lobbyPlayers.lobby.players.length >= 2) {
@@ -493,7 +496,8 @@ function updatePlayerInfo() {
   } else {
     document.querySelector("#player-info .icon").style.color = player.color;
     document.querySelector("#player-info .icon").style.borderColor = player.color;
-    document.querySelector("#player-info .icon").innerHTML = `<span style="color: ${player.color}" class="fa fa-${player.icon}"></span>`;
+    let icon = player.icon.split(' ');
+    document.querySelector("#player-info .icon").innerHTML = `<span style="color: ${player.color}" class="${icon.length > 1 ? icon[1]: "fa"} fa-${icon[0]}"></span>`;
     if (!player.lobby) {
       socket.emit("get lobbies");
     }
@@ -502,17 +506,17 @@ function updatePlayerInfo() {
 function selectColor(e) {
   $(".color-picker span.selected").removeClass("selected");
   $(e).addClass("selected");
-  $(".large-fa-icon .fa").css('color', e.dataset.color);
+  $(".large-fa-icon .fa, .large-fa-icon .fab").css('color', e.dataset.color);
   if (player.icon) {
-    $(".large-fa-icon .fa").css('color', 'black');
-    $(".fa-" + player.icon).css('color', e.dataset.color);
+    $(".large-fa-icon .fa, .large-fa-icon .fab").css('color', 'black');
+    $(`.fa-${player.icon}, .fab-${player.icon}`).css('color', e.dataset.color);
   }
   player.color = e.dataset.color;
   // sendPlayerInfo();
 }
 function selectIcon(e) {
   $(".large-fa-icon span.selected").removeClass("selected");
-  $(".large-fa-icon .fa").css('color', 'black');
+  $(".large-fa-icon .fa, .large-fa-icon .fab").css('color', 'black');
   $(e).addClass("selected");
   if (player.color) {
     $(e).css('color', player.color);
@@ -521,17 +525,20 @@ function selectIcon(e) {
   // sendPlayerInfo();
 }
 function promptIcon() {
-  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg", "studiovinari", "laugh-squint", "bomb", "brain", "bug", "bbok-medical", "bowling-ball", "candy-cane", "car-crash", "carrot", "church", "dice-five", "dna", "gem", "hotjar", "jenkins", "linux", "meteor", "octopus-deploy", "paw", "poop", "steam", "user-ninja", "user-injured", "wheelchair", "yin-yang"];
+  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg", "studiovinari fab", "laugh-squint", "bomb", "brain", "bug", "bbok-medical", "bowling-ball", "candy-cane", "car-crash", "carrot", "church", "dice-five", "dna", "gem", "fire-alt", "jenkins fab", "linux fab", "meteor", "octopus-deploy fab", "paw", "poop", "steam fab", "user-ninja", "user-injured", "wheelchair", "yin-yang"];
   let colors = ["#D50000", "#FF4081", "#9C27B0", "#3F51B5", "#2196F3", "#00BCD4", "#4CAF50", "#FF9800", "#607D8B"]
   shuffleArray(icons);
   shuffleArray(colors);
   lobbiesElement.innerHTML = `<div class="color-picker col-md-12">
     ${colors.reduce((prev, cur) => prev + `<span onclick="selectColor(this)" data-color="${cur}" style="background-color:${cur}"></span>`, "")}
   </div>`;
-  lobbiesElement.innerHTML += '<div class="col-md-12 icon-list">' + icons.reduce((prev, cur) => prev + 
-  `<div class="large-fa-icon">
-    <span onclick="selectIcon(this)" class="fa fa-${cur}" data-icon="${cur}"></span>
-  </div>`, "") + '</div>';
+  lobbiesElement.innerHTML += '<div class="col-md-12 icon-list">' + icons.reduce((prev, cur) => {
+    let icons = cur.split(' ');
+    return prev + 
+    `<div class="large-fa-icon">
+      <span onclick="selectIcon(this)" class="${icons.length > 1 ? icons[1] : "fa"} fa-${icons[0]}" data-icon="${cur}"></span>
+    </div>`
+  }, "") + '</div>';
   lobbiesElement.innerHTML +=
   `<div class="col-md-12">
     <button onclick="sendPlayerInfo()" class="btn btn-primary">Confirm</button>

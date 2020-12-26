@@ -21,7 +21,7 @@ body {
     cursor: pointer;
     text-align: center;
 }
-#player-info .icon .fa {
+#player-info .icon .fa, #player-info .icon .fab {
     font-size: 30px;
     line-height: 50px;
 }
@@ -36,18 +36,18 @@ body {
 .icon-list {
     max-height: 60vh;
     overflow-y: auto;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 .large-fa-icon {
-    font-size: 7.5rem;
+    font-size: 6rem;
     display: inline;
 }
-.large-fa-icon .fa {
+.large-fa-icon .fa, .large-fa-icon .fab {
     cursor: pointer;
     animation: hoverin-down 2s;
     transition: color .7s;
 }
-.large-fa-icon .fa.selected {
+.large-fa-icon .fa.selected, .large-fa-icon .fab.selected {
     text-shadow: 0px 0px 20px rgb(134, 134, 134);
 }
 .color-picker {
