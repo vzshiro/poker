@@ -263,7 +263,7 @@ function moveActingPlayer(socket, lobby) {
 function getPrevActingPlayer(fromPlayerId, lobby) {
   let index = 1, prevPlayer = "";
   while(prevPlayer == "") {
-    prevPlayer = lobby.seq[lobby.seq.indexOf(fromPlayerId) - index][0];
+    prevPlayer = lobby.seq[(lobby.seq.indexOf(fromPlayerId) - index)%lobby.seq.length][0];
     if (lobby.fold.includes(lobby.seq[actingIndex])) {
       index++;
       prevPlayer = "";
@@ -385,7 +385,7 @@ io.on('connection', (socket) => {
     }
   })
   socket.on('join lobby', (lobbyId, callback) => {
-    if (lobbies[lobbyId]) {
+    if (lobbies[lobbyId] && lobbies[lobbyId].status != 'Start') {
       if (!lobbies[lobbyId].players.includes(socket.id)) {
         io.to(lobbyId).emit('player join', players[socket.id]);
         lobbies[lobbyId].players.push(socket.id);
