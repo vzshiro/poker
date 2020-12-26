@@ -127,7 +127,7 @@ function createLobby() {
     smallBlind: 0,
     bigBlind: 0
   }
-  let lobbyName = promptForString("Enter a lobby name"),
+  let lobbyName = promptForString("Enter a lobby name", player.name + " Lobby"),
   startingToken = promptForInteger("Enter starting token", 3000),
   smallBlind = promptForInteger("Enter small blind", 20),
   bigBlind = promptForInteger("Enter big blind", 50)
