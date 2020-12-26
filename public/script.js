@@ -62,7 +62,9 @@ function showLobbies(lobbies) {
       <button onclick="createLobby('public')" class="btn btn-primary">Create Public Lobby</button>
     </div>`;
     for (const [key, value] of Object.entries(lobbies)) {
-      lobbiesElement.innerHTML += `<div class="col-md-4 col-sm-6">${lobbyInfoHTML(value)}</div>`;
+      if (value.status != 'Start') {
+        lobbiesElement.innerHTML += `<div class="col-md-4 col-sm-6">${lobbyInfoHTML(value)}</div>`;
+      }
     }
   }
 }
@@ -569,6 +571,9 @@ function logout() {
       location.reload();
     }
   }
+}
+function showGameInfo() {
+  $("#info-modal").modal("show");
 }
 $(function () {
   socket = io();

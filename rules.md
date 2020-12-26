@@ -24,6 +24,8 @@
 ## Hand Rankings
 Before you start reading, you need to understand that every player only competes with their 5 best cards.
 
+*Suit is never considered during kicker*
+
 *When tie is not specified, it means there are multiple winners and they split the pot.*
 1. Royal Flush (10, J, Q, K, A - Same Suit)
     - Tie only happens when the flush is on the board
