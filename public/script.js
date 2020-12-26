@@ -161,7 +161,7 @@ function generateGame() {
           <span class="player-seq">${lobbyPlayers.lobby.actingPlayer == cur ? `<span class="fa fa-chevron-right"></span><span class="fa fa-chevron-right"></span><span class="fa fa-chevron-right"></span>` : ""}</span>
           ${cur == lobbyPlayers.lobby.dealer ? '<span class="fa fa-hand-sparkles"></span>' : ""}
           ${lobbyPlayers[cur].name}
-          <span style="color: ${lobbyPlayers[cur].color}" class="fa fa-${lobbyPlayers[cur].icon}"></span>
+          ${generateUserIcon(cur)}
           <span class="fa fa-money-bill"></span>
           ${lobbyPlayers[cur].token}
           ${lobbyPlayers.lobby.fold.includes(cur) ? `<span class="fa fa-dizzy"></span>` : ""}
