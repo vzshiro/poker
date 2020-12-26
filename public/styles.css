@@ -33,8 +33,14 @@ body {
     padding: 2rem;
     text-align: center;
 }
+.icon-list {
+    max-height: 70vh;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
 .large-fa-icon {
     font-size: 7.5rem;
+    display: inline;
 }
 .large-fa-icon .fa {
     cursor: pointer;
@@ -115,6 +121,35 @@ body {
   animation: blinking 2s;
   animation-iteration-count: infinite;
 }
+.poker-cards {
+    font-size: 2rem;
+    display: inline-block;
+    height: 5.5rem;
+    padding: 0.6rem;
+    border: 2px solid black;
+    margin: 1rem;
+    border-radius: .5rem;
+}
+.poker.S::after {
+    font-family: Cards LVMG;
+    content: "S";
+    color: black;
+}
+.poker.H::after {
+    font-family: Cards LVMG;
+    content: "H";
+    color: red;
+}
+.poker.C::after {
+    font-family: Cards LVMG;
+    content: "C";
+    color: black;
+}
+.poker.D::after {
+    font-family: Cards LVMG;
+    content: "D";
+    color: red;
+}
 @keyframes blinking {
     0% { opacity: 1; }
     50% { opacity: 0; }
@@ -131,13 +166,11 @@ body {
     33% { opacity: 0; }
     66% { opacity: 1; }
     100% { opacity: 0; }
-    14% { opacity: 0; }
 }
 @keyframes blinking-fast-3 {
     0% { opacity: 0; }
     66% { opacity: 0; }
     100% { opacity: 1; }
-    55% { opacity: 0; }
 }
 @keyframes hoverin-down {
     from { opacity: 0; transform: translate(0px, 30px); }
@@ -146,4 +179,12 @@ body {
 @keyframes hoverin-left {
     from { opacity: 0; transform: translate(-15px, 0px); }
     to   { opacity: 1; }
+}
+@font-face {
+    font-family: 'Cards LVMG';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url("../webfonts/fa-regular-400.eot");
+    src: url("../webfonts/Cards-LVMG.woff2") format("woff2"), url("../webfonts/Cards-LVMG.woff") format("woff"), url("../webfonts/Cards-LVMG.ttf") format("truetype");
 }

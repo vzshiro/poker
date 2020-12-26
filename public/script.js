@@ -2,6 +2,9 @@ var socket;
 var player;
 var lobbiesElement;
 var lobbyPlayers = {};
+const cardText = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const cardSuit = ["S", "H", "C", "D"];
+
 function init() {
   lobbiesElement = document.getElementById("lobbies");
   try {
@@ -33,8 +36,8 @@ function init() {
     lobbyPlayers = lobbyInfo;
     generateGame();
   })
-  socket.on('who won', () => {
-    selectWinner();
+  socket.on('Showdown', () => {
+    // selectWinner();
   })
   socket.on('player join', function (playerInfo) {
     console.log("New player", playerInfo);
@@ -171,11 +174,52 @@ function generateGame() {
   <div class="col-md-12">
     <h2>Pool: <span class="fa fa-money-bill"></span>${lobbyPlayers.lobby.pool}</h2>
   </div>
-  ${lobbyPlayers.lobby.stage != 'who won' && lobbyPlayers.lobby.actingPlayer == player.id ?
+  ${lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id ?
     `<div class="col-md-12">${generateActions()}<div>`: ""
   }`
+  lobbiesElement.innerHTML += generateCards();
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
+}
+function generatePoker(card) {
+  return `<div class="poker-cards">
+  ${cardText[card%13]}
+  <span class="poker ${cardSuit[Math.floor(card/13)]}"></span>
+</div>`;
+}
+function generateCards() {
+  console.log(player)
+  let html = "";
+  if (lobbyPlayers.lobby.cards && lobbyPlayers.lobby.cards.length > 0) {
+    html += `<div class="col-md-12"><h3>Table Cards</h3></div>`;
+    html += '<div class="col-md-12">'
+    lobbyPlayers.lobby.cards.forEach(card => {
+      html += generatePoker(card)
+    })
+    html += "</div>"
+  }
+  if (lobbyPlayers.lobby.stage == 'Showdown') {
+    lobbyPlayers.lobby.players.forEach(p => {
+      if (lobbyPlayers[p].cards) {
+        html += `<div class="col-md-12"><h3>${lobbyPlayers[p].name} ${generateUserIcon(p)} Cards</h3></div>`;
+        html += '<div class="col-md-12">'
+        lobbyPlayers[p].cards.forEach(card => {
+          html += generatePoker(card)
+        })
+        html += "</div>"
+      }
+    })
+  } else {
+    if (player.cards) {
+      html += `<div class="col-md-12"><h3>Your Cards</h3></div>`;
+      html += '<div class="col-md-12">'
+      player.cards.forEach(card => {
+        html += generatePoker(card)
+      })
+      html += "</div>"
+    }
+  }
+  return html;
 }
 function generateHistory() {
   let history = lobbyPlayers.lobby.history.slice(-5).reverse();
@@ -185,7 +229,7 @@ function generateStageInfo(stage) {
   let html = "";
   switch (stage) {
     case 'Preflop':
-      html = `<div><h3>Deal them cards (Starting with Dealer)</h3></div>`
+      html = `<div><h3>Deal each player 2 cards (Starting from Dealer)</h3></div>`
       break;
     case 'Flop':
       html = `<div><h3>Deal 3 cards on table</h3></div>`
@@ -196,8 +240,12 @@ function generateStageInfo(stage) {
     case 'River':
       html = `<div><h3>Deal the 5th (last) card on table</h3></div>`
       break;
-    case 'who won':
-      html = `<div><h3>Host is deciding who won!</h3></div>`
+    case 'Showdown':
+      if (lobbyPlayers.lobby.host == player.id) {
+        html = `<div><button class="btn btn-primary" onclick="selectWinner()">Select Winner</button></div>`
+      } else {
+        html = `<div><h3>Host is deciding who won!</h3></div>`
+      }
       break;
   }
   return html;
@@ -213,7 +261,7 @@ function showHistory() {
   $("#history-modal").modal("show");
 }
 function generateActions() {
-  if (lobbyPlayers.lobby.stage == 'who won') {
+  if (lobbyPlayers.lobby.stage == 'Showdown') {
     return;
   }
   let html = '<div class="actions">';
@@ -448,7 +496,7 @@ function selectColor(e) {
     $(".fa-" + player.icon).css('color', e.dataset.color);
   }
   player.color = e.dataset.color;
-  sendPlayerInfo();
+  // sendPlayerInfo();
 }
 function selectIcon(e) {
   $(".large-fa-icon span.selected").removeClass("selected");
@@ -458,7 +506,7 @@ function selectIcon(e) {
     $(e).css('color', player.color);
   }
   player.icon = e.dataset.icon;
-  sendPlayerInfo();
+  // sendPlayerInfo();
 }
 function promptIcon() {
   let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg"];
@@ -468,14 +516,14 @@ function promptIcon() {
   lobbiesElement.innerHTML = `<div class="color-picker col-md-12">
     ${colors.reduce((prev, cur) => prev + `<span onclick="selectColor(this)" data-color="${cur}" style="background-color:${cur}"></span>`, "")}
   </div>`;
-  lobbiesElement.innerHTML += icons.reduce((prev, cur) => prev + 
-  `<div class="col-md-4 col-sm-6 col-xs-6 large-fa-icon">
+  lobbiesElement.innerHTML += '<div class="col-md-12 icon-list">' + icons.reduce((prev, cur) => prev + 
+  `<div class="large-fa-icon">
     <span onclick="selectIcon(this)" class="fa fa-${cur}" data-icon="${cur}"></span>
-  </div>`, "");
-  // lobbiesElement.innerHTML +=
-  // `<div class="col-md-12">
-  //   <button onclick="sendPlayerInfo()" class="btn btn-primary">Confirm</button>
-  // </div>`
+  </div>`, "") + '</div>';
+  lobbiesElement.innerHTML +=
+  `<div class="col-md-12">
+    <button onclick="sendPlayerInfo()" class="btn btn-primary">Confirm</button>
+  </div>`
 }
 function sendPlayerInfo() {
   if (!player.color || !player.icon) {

@@ -10,8 +10,9 @@ app.use('/js', express.static('js'))
 app.use('/webfonts', express.static('webfonts'))
 
 var lobbies = {};
+var lobbyCards = {};
 var players = {};
-var stages = ['Preflop', 'Flop', 'Turn', 'River']
+var stages = ['Preflop', 'Flop', 'Turn', 'River'];
 
 // Add Legends, Save sequence, tokens to player object
 // Add Leave / Join capabilities, Add Pots during All-In
@@ -97,8 +98,8 @@ function rejoinLobby(socket, oldId) {
     }
     io.to(lobbyId).emit('lobby info', getLobbyInfo(lobbyId));
     console.log("Rejoined Lobby")
-    if (lobbies[lobbyId].stage == 'who won' && lobbies[lobbyId].host == socket.id) {
-      io.to(socket.id).emit('who won');
+    if (lobbies[lobbyId].stage == 'Showdown' && lobbies[lobbyId].host == socket.id) {
+      io.to(socket.id).emit('Showdown');
     }
     saveLobby();
   } else {
@@ -111,7 +112,16 @@ function rejoinLobby(socket, oldId) {
 function getLobbyInfo(lobbyId) {
   let lobbyInfo = {};
   for(let p of lobbies[lobbyId].players) {
-    lobbyInfo[p] = players[p]
+    lobbyInfo[p] = {};
+    lobbyInfo[p].id = players[p].id;
+    lobbyInfo[p].name = players[p].name;
+    lobbyInfo[p].color = players[p].color;
+    lobbyInfo[p].icon = players[p].icon;
+    lobbyInfo[p].token = players[p].token;
+    lobbyInfo[p].currentBet = players[p].currentBet;
+    if (lobbies[lobbyId].stage == 'Showdown' && !lobbies[lobbyId].fold.includes(p)) {
+      lobbyInfo[p].cards = players[p].cards
+    }
   }
   lobbyInfo.lobby = lobbies[lobbyId];
   return lobbyInfo;
@@ -124,13 +134,20 @@ function startRound(lobbyId) {
   lobby.dealer = lobby.seq[actingIndex];
   lobby.actingPlayer = lobby.seq[smallBlindIndex];
   lobby.fold = [];
+  lobby.cards = [];
   lobby.pool = 0;
   lobby.raised = false;
+  lobbyCards[lobby.id].cards= Array.from({length: 52}, (x, i) => i);
   // Preflop (When hands are dealt), Flop (First 3 cards), Turn (Next card), River (Last card)
   lobby.stage = stages[0];
   lobby.seq.forEach(p => {
     players[p].currentBet = 0;
+    players[p].cards = [];
+    lobbyCards[lobby.id][p] = [];
   })
+  // Deal all player 2 cards
+  dealPlayerCards(lobby);
+  dealPlayerCards(lobby);
   if (players[lobby.seq[smallBlindIndex]].token >= lobby.smallBlind) {
     players[lobby.seq[smallBlindIndex]].token -= lobby.smallBlind;
     players[lobby.seq[smallBlindIndex]].currentBet = lobby.smallBlind;
@@ -154,6 +171,17 @@ function startRound(lobbyId) {
     players[lobby.seq[bigBlindIndex]].token = 0;
   }
   lobby.highestBet = lobby.bigBlind;
+}
+function getRandomCardFromLobby(lobby) {
+  let randomIndex = Math.floor(Math.random() * lobbyCards[lobby.id].cards.length);
+  return lobbyCards[lobby.id].cards.splice(randomIndex, 1);
+}
+function dealPlayerCards(lobby) {
+  lobby.players.forEach(p => {
+    let card = getRandomCardFromLobby(lobby);
+    lobbyCards[lobby.id][p].push(card);
+    players[p].cards.push(card);
+  })
 }
 function proceedRound(socket, action) {
   let lobby = lobbies[players[socket.id].lobby];
@@ -258,7 +286,7 @@ function getNextActingPlayer(fromPlayerId, lobby) {
 function nextStage(lobby) {
   let stageIndex = stages.indexOf(lobby.stage) + 1
   if (stageIndex == stages.length) {
-    lobby.stage = 'who won';
+    lobby.stage = 'Showdown';
     askWinner(lobby);
   } else {
     lobby.stage = stages[stageIndex];
@@ -268,17 +296,36 @@ function nextStage(lobby) {
       players[p].currentBet = 0;
     })
     getNextActingPlayer(lobby.dealer, lobby)
+    // Draw and burn cards
+    switch (lobby.stage) {
+      case 'Flop':
+        lobby.cards.push(getRandomCardFromLobby(lobby));
+        getRandomCardFromLobby(lobby);
+        lobby.cards.push(getRandomCardFromLobby(lobby));
+        getRandomCardFromLobby(lobby);
+        lobby.cards.push(getRandomCardFromLobby(lobby));
+        getRandomCardFromLobby(lobby);
+        break;
+      case 'Turn':
+        lobby.cards.push(getRandomCardFromLobby(lobby));
+        getRandomCardFromLobby(lobby);
+        break;
+      case 'River':
+        lobby.cards.push(getRandomCardFromLobby(lobby));
+        getRandomCardFromLobby(lobby);
+        break;
+    }
     io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
   }
 }
 function askWinner(lobby) {
   io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
-  io.to(lobby.host).emit('who won');
+  io.to(lobby.host).emit('Showdown');
 }
 function endRound(lobby, winners) {
   winners.forEach(winner => {
     players[winner].token += Math.floor(lobby.pool/winners.length);
-    lobby.history.push({ name: players[winner].name, action: 'win', stage: 'who won', amount: Math.floor(lobby.pool/winners.length) })
+    lobby.history.push({ name: players[winner].name, action: 'win', stage: 'Showdown', amount: Math.floor(lobby.pool/winners.length) })
   })
   lobby.pool = 0;
   lobby.round += 1;
@@ -332,6 +379,7 @@ io.on('connection', (socket) => {
       players[socket.id].lobby = lobby.id;
       savePlayer();
       socket.join(lobby.id);
+      socket.broadcast.emit('lobbies', lobbies)
       callback(lobby);
     }
   })
@@ -354,6 +402,9 @@ io.on('connection', (socket) => {
       let lobby = lobbies[player.lobby];
       if (lobby && lobby.players.includes(socket.id)) {
         removePlayerFromLobby(socket);
+        io.emit('lobbies', lobbies);
+        saveLobby();
+        savePlayer();
       }
     }
   })
@@ -366,10 +417,14 @@ io.on('connection', (socket) => {
       lobbies[lobby.id].status = 'Start';
       lobbies[lobby.id].seq.forEach(p => {
         players[p].token = lobbies[lobby.id].token;
-      })
+      });
+      lobbyCards[lobby.id] = {};
       startRound(lobby.id);
       saveLobby();
       savePlayer();
+      lobbies[lobby.id].seq.forEach(p => {
+        io.to(p).emit('player info', players[p])
+      });
       io.to(lobby.id).emit('start game', getLobbyInfo(lobby.id));
     }
   })
@@ -389,6 +444,7 @@ io.on('connection', (socket) => {
     delete players[socket.id];
     savePlayer();
     saveLobby();
+    io.emit('lobbies', lobbies);
   });
   socket.on('disconnect', () => {
     console.log(socket.id + " Disconnected")
@@ -413,10 +469,19 @@ function saveLobby(lobby) {
     lobbies[lobby.id] = lobby;
   }
   console.log("Save Lobbies", lobbies);
+  // Take only last 500 history
+  for (const [key, value] of Object.entries(lobbies)) {
+    if (value.history) {
+      value.history = value.history.slice(-500);
+    }
+  }
   if (!fs.existsSync('data')) {
     fs.mkdirSync('data');
   }
   fs.writeFileSync('data/lobbies.json',JSON.stringify(lobbies), (err) => {
+    if(err) console.log(err)
+  });
+  fs.writeFileSync('data/lobby_cards.json',JSON.stringify(lobbyCards), (err) => {
     if(err) console.log(err)
   });
 }
@@ -430,6 +495,16 @@ function reloadData() {
       }
     } catch (err) {
       console.log("Error reading lobbies file", err)
+    }
+  }
+  if (fs.existsSync('data/lobby_cards.json')) {
+    try {
+      let item = fs.readFileSync('data/lobby_cards.json');
+      if (item.length) {
+        lobbyCards = JSON.parse(item)
+      }
+    } catch (err) {
+      console.log("Error reading lobby cards file", err)
     }
   }
   if (fs.existsSync('data/players.json')) {
