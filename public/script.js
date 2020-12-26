@@ -58,7 +58,7 @@ function showLobbies(lobbies) {
   if (!player.lobby) {
     lobbiesElement.innerHTML =
     `<div class="col-md-12">
-      <button onclick="createLobby()" class="btn btn-primary">Create Lobby</button>
+      <button onclick="createLobby('public')" class="btn btn-primary">Create Public Lobby</button>
     </div>`;
     for (const [key, value] of Object.entries(lobbies)) {
       lobbiesElement.innerHTML += `<div class="col-md-4 col-sm-6">${lobbyInfoHTML(value)}</div>`;
@@ -146,7 +146,7 @@ function createLobby() {
       savePlayer();
       generateLobby();
     });
-    $('div.action').remove();
+    lobbiesElement.innerHTML = "";
   }
 }
 function generateGame() {
@@ -211,8 +211,8 @@ function generateCards() {
     })
   } else {
     if (player.cards) {
-      html += `<div class="col-md-12"><h3>Your Cards</h3></div>`;
-      html += '<div class="col-md-12">'
+      html += `<div class="col-md-12"><h3>Your Cards <span onclick="togglePlayerCard(this)" class="fa fa-eye pointer"></span></h3></div>`;
+      html += '<div id="player-cards" class="col-md-12">'
       player.cards.forEach(card => {
         html += generatePoker(card)
       })
@@ -220,6 +220,18 @@ function generateCards() {
     }
   }
   return html;
+}
+function togglePlayerCard(e) {
+  let playerCards = document.getElementById("player-cards")
+  if (e.classList.contains("fa-eye-slash")) {
+    playerCards.classList.remove("hidden");
+    e.classList.remove("fa-eye-slash")
+    e.classList.add("fa-eye")
+  } else {
+    playerCards.classList.add("hidden");
+    e.classList.add("fa-eye-slash")
+    e.classList.remove("fa-eye")
+  }
 }
 function generateHistory() {
   let history = lobbyPlayers.lobby.history.slice(-5).reverse();

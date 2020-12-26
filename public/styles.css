@@ -132,6 +132,23 @@ h3.Preflop {
   animation: blinking 2s;
   animation-iteration-count: infinite;
 }
+.fa.pointer {
+    cursor: pointer;
+}
+#player-cards.hidden {
+    background-color: rgb(191, 239, 255);
+    font-size: 2rem;
+}
+#player-cards.hidden .poker-cards {
+    display: none;
+}
+#player-cards.hidden::before {
+    content: "Hidden ";
+}
+#player-cards.hidden::after {
+    content: "SHCD";
+    font-family: Cards LVMG;
+}
 .poker-cards {
     font-size: 1.4rem;
     display: inline-block;
