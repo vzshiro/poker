@@ -168,11 +168,11 @@ function generateGame() {
     </div>
   </div>
   <div class="col-md-12">
-    <h2>Stage: ${lobbyPlayers.lobby.stage}</h2>
+    <h3 class="${lobbyPlayers.lobby.stage}">Stage: ${lobbyPlayers.lobby.stage}</h3>
     ${generateStageInfo(lobbyPlayers.lobby.stage)}
   </div>
   <div class="col-md-12">
-    <h2>Pool: <span class="fa fa-money-bill"></span>${lobbyPlayers.lobby.pool}</h2>
+    <h3>Pool: <span class="money-green"><span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.pool}</span></h3>
   </div>
   ${lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id ?
     `<div class="col-md-12">${generateActions()}<div>`: ""
@@ -191,12 +191,12 @@ function generateCards() {
   console.log(player)
   let html = "";
   if (lobbyPlayers.lobby.cards && lobbyPlayers.lobby.cards.length > 0) {
-    html += `<div class="col-md-12"><h3>Table Cards</h3></div>`;
-    html += '<div class="col-md-12">'
+    html += `<div class="col-md-12"><h3>Table Cards</h3>`;
+    html += '<div class="table-cards">'
     lobbyPlayers.lobby.cards.forEach(card => {
       html += generatePoker(card)
     })
-    html += "</div>"
+    html += "</div></div>"
   }
   if (lobbyPlayers.lobby.stage == 'Showdown') {
     lobbyPlayers.lobby.players.forEach(p => {
