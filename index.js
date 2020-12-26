@@ -5,7 +5,7 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 
-app.use(express.static('public'))
+app.use(express.static('public', { maxAge: 31557600 }))
 app.use('/css', express.static('css', { maxAge: 31557600 }))
 app.use('/js', express.static('js', { maxAge: 31557600 }))
 app.use('/webfonts', express.static('webfonts', { maxAge: 31557600 }))
