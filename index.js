@@ -6,9 +6,9 @@ var io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 
 app.use(express.static('public'))
-app.use('/css', express.static('css'))
-app.use('/js', express.static('js'))
-app.use('/webfonts', express.static('webfonts'))
+app.use('/css', express.static('css'), { maxAge: 31557600 })
+app.use('/js', express.static('js'), { maxAge: 31557600 })
+app.use('/webfonts', express.static('webfonts'), { maxAge: 31557600 })
 
 var lobbies = {};
 var lobbyCards = {};
@@ -149,6 +149,9 @@ function startRound(lobbyId) {
   // Deal all player 2 cards
   dealPlayerCards(lobby);
   dealPlayerCards(lobby);
+  lobby.seq.forEach(p => {
+    io.to(p).emit('player info', players[p])
+  });
   if (players[lobby.seq[smallBlindIndex]].token >= lobby.smallBlind) {
     players[lobby.seq[smallBlindIndex]].token -= lobby.smallBlind;
     players[lobby.seq[smallBlindIndex]].currentBet = lobby.smallBlind;
@@ -423,9 +426,6 @@ io.on('connection', (socket) => {
       startRound(lobby.id);
       saveLobby();
       savePlayer();
-      lobbies[lobby.id].seq.forEach(p => {
-        io.to(p).emit('player info', players[p])
-      });
       io.to(lobby.id).emit('start game', getLobbyInfo(lobby.id));
     }
   })
