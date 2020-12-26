@@ -14,6 +14,15 @@
 2. Try not to Logout when playing inside Lobby (it's handled but not guaranteed).
 3. You may screen lock / close browser - **As long as the browser supports local cache**.
 
+## Run on Termux (Android)
+1. Install Termux from Google Play Store
+2. Once done, run `apt update && apt upgrade -y`
+3. Install git `pkg install git`
+4. Clone source code from GitHub `git clone https://github.com/vzshiro/poker.git`
+5. Get your IP `ifconfig`
+6. Change directory, install dependencies and start `cd poker && npm i && npm start`
+7. Enjoy hosting on Android phone
+
 ## Additional Notes
 1. Refreshing the page on anytime shouldn't cause any issue (but try not to do so without reason).
 2. It's possible to run this on Android, so that you may open up a hotspot / connect to same Wi-Fi to play with others.
