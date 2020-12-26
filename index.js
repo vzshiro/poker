@@ -264,7 +264,7 @@ function getPrevActingPlayer(fromPlayerId, lobby) {
   let index = 1, prevPlayer = "";
   while(prevPlayer == "") {
     prevPlayer = lobby.seq[(lobby.seq.indexOf(fromPlayerId) + lobby.seq.length - index)][0];
-    if (lobby.fold.includes(lobby.seq[actingIndex])) {
+    if (lobby.fold.includes(prevPlayer)) {
       index++;
       prevPlayer = "";
     } else {
