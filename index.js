@@ -3,6 +3,7 @@ var app = express();
 var fs = require("fs");
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+const port = 80;
 
 app.use(express.static('public'))
 app.use('/css', express.static('css'))
@@ -523,8 +524,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-http.listen(3000, () => {
-  console.log('listening on http://localhost:3000');
+http.listen(port, () => {
+  console.log(`listening on http://localhost:${port}`);
 });
 
 reloadData();
