@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8" http-equiv="Cache-control" content="public">
     <title>Poker Game</title>
 </head>
+<audio id="notification-audio">
+    <source src="ding.ogg" type="audio/ogg">
+</audio>
 <div id="sequence-modal" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -204,7 +207,12 @@
 <script>
     Notification.requestPermission().then(function (permission) {
         if (permission) {
-            alert("Phone will vibrate on your turn")
+            if (!localStorage.getItem("permission")) {
+                alert("Phone will vibrate on your turn");
+                localStorage.setItem("permission", "true");
+            }
+        } else {
+            localStorage.removeItem("permission");
         }
     })
 </script>

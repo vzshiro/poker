@@ -183,7 +183,8 @@ function generateGame() {
   lobbiesElement.innerHTML += generateCards();
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
-  if (lobbyPlayers.lobby.actingPlayer == player.id) {
+  if (lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id) {
+    document.getElementById("notification-audio").play();
     window.navigator.vibrate(300);
   }
 }
