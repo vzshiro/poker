@@ -521,7 +521,7 @@ function selectIcon(e) {
   // sendPlayerInfo();
 }
 function promptIcon() {
-  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg"];
+  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg", "studiovinari", "laugh-squint", "bomb", "brain", "bug", "bbok-medical", "bowling-ball", "candy-cane", "car-crash", "carrot", "church", "dice-five", "dna", "gem", "hotjar", "jenkins", "linux", "meteor", "octopus-deploy", "paw", "poop", "steam", "user-ninja", "user-injured", "wheelchair", "yin-yang"];
   let colors = ["#D50000", "#FF4081", "#9C27B0", "#3F51B5", "#2196F3", "#00BCD4", "#4CAF50", "#FF9800", "#607D8B"]
   shuffleArray(icons);
   shuffleArray(colors);
