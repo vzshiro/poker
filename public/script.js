@@ -511,7 +511,7 @@ function selectColor(e) {
   $(".large-fa-icon .fa, .large-fa-icon .fab").css('color', e.dataset.color);
   if (player.icon) {
     $(".large-fa-icon .fa, .large-fa-icon .fab").css('color', 'black');
-    $(`.fa-${player.icon}, .fab-${player.icon}`).css('color', e.dataset.color);
+    $(`.fa-${player.icon.split(' ')[0]}, .fab-${player.icon.split(' ')[0]}`).css('color', e.dataset.color);
   }
   player.color = e.dataset.color;
   // sendPlayerInfo();
