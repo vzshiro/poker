@@ -1,6 +1,7 @@
 var socket;
 var player;
 var lobbiesElement;
+var allLobbies;
 var lobbyPlayers = {};
 var hideCards = false;
 var notify = true;
@@ -31,8 +32,8 @@ function init() {
     generateLobby();
   })
   socket.on('lobbies', function (lobbies) {
-    console.log("Lobbies", lobbies)
-    showLobbies(lobbies);
+    allLobbies = lobbies;
+    showLobbies();
   })
   socket.on('start game', function (lobbyInfo) {
     lobbyPlayers = lobbyInfo;
@@ -56,14 +57,14 @@ function init() {
     }
   })
 }
-function showLobbies(lobbies) {
+function showLobbies() {
   if (!player.lobby && player.icon && player.color) {
     lobbiesElement.innerHTML =
     `<div class="col-md-12">
       <button onclick="createLobby('public')" class="btn btn-primary">Create Public Lobby</button>
       <button onclick="createLobby('private')" class="btn btn-primary">Create Private Lobby</button>
     </div>`;
-    for (const [key, value] of Object.entries(lobbies)) {
+    for (const [key, value] of Object.entries(allLobbies)) {
       if (value.status != 'Start') {
         lobbiesElement.innerHTML += `<div class="col-md-4 col-sm-6">${lobbyInfoHTML(value)}</div>`;
       }
@@ -86,11 +87,23 @@ function lobbyInfoHTML(lobby) {
 }
 function joinLobby(lobbyId) {
   lobbiesElement.innerHTML = "";
-  socket.emit("join lobby", lobbyId, function(lobbyInfo) {
-    player.lobby = lobbyInfo.lobby.id;
-    lobbyPlayers = lobbyInfo;
-    savePlayer();
-    generateLobby();
+  let code = "";
+  if (allLobbies[lobbyId].type == 'private') {
+    code = promptForString("Enter the private code")
+    if (code == null) {
+      return;
+    }
+  }
+  socket.emit("join lobby", { id: lobbyId, code: code }, function(lobbyInfo) {
+    if (lobbyInfo) {
+      player.lobby = lobbyInfo.lobby.id;
+      lobbyPlayers = lobbyInfo;
+      savePlayer();
+      generateLobby();
+    } else {
+      alert("Failed to join lobby");
+      generateLobby()
+    }
   });
 }
 function promptForString(msg, defValue = "") {
@@ -504,7 +517,7 @@ function saveName(name) {
   savePlayer();
 }
 function updatePlayerInfo() {
-  document.querySelector("#player-info .name").innerHTML = player.name;
+  // document.querySelector("#player-info .name").innerHTML = player.name;
   if (!player.icon || !player.color) {
     promptIcon();
   } else {

@@ -407,17 +407,21 @@ io.on('connection', (socket) => {
       callback(lobby);
     }
   })
-  socket.on('join lobby', (lobbyId, callback) => {
-    if (lobbies[lobbyId] && lobbies[lobbyId].status != 'Start') {
-      if (!lobbies[lobbyId].players.includes(socket.id)) {
-        io.to(lobbyId).emit('player join', players[socket.id]);
-        lobbies[lobbyId].players.push(socket.id);
-        socket.join(lobbyId);
-        players[socket.id].lobby = lobbyId;
+  socket.on('join lobby', (lobbyInfo, callback) => {
+    if (lobbies[lobbyInfo.id] && lobbies[lobbyInfo.id].status != 'Start') {
+      if (!lobbies[lobbyInfo.id].players.includes(socket.id)) {
+        if (lobbies[lobbyInfo.id].type == 'private' && lobbyInfo.code != lobbyPassword[lobbyInfo.id]) {
+          callback(false);
+          return;
+        }
+        io.to(lobbyInfo.id).emit('player join', players[socket.id]);
+        lobbies[lobbyInfo.id].players.push(socket.id);
+        socket.join(lobbyInfo.id);
+        players[socket.id].lobby = lobbyInfo.id;
         saveLobby();
         savePlayer();
       }
-      callback(getLobbyInfo(lobbyId));
+      callback(getLobbyInfo(lobbyInfo.id));
     }
   })
   socket.on('quit lobby', () => {
