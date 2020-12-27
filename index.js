@@ -51,9 +51,12 @@ function removePlayerFromLobby(socket) {
     }
     if (lobby.players.length == 0) {
       delete lobbies[players[socket.id].lobby];
+      return false;
     } else if (lobby.status == 'Start') {
       io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
+      return false;
     }
+    return true;
   }
 }
 function rejoinLobby(socket, oldId) {
@@ -404,7 +407,7 @@ io.on('connection', (socket) => {
       savePlayer();
       socket.join(lobby.id);
       socket.broadcast.emit('lobbies', lobbies)
-      callback(lobby);
+      callback({ lobby: lobby, code: lobbyPassword[lobby.id] });
     }
   })
   socket.on('join lobby', (lobbyInfo, callback) => {
@@ -429,7 +432,11 @@ io.on('connection', (socket) => {
     if (player && player.lobby) {
       let lobby = lobbies[player.lobby];
       if (lobby && lobby.players.includes(socket.id)) {
-        removePlayerFromLobby(socket);
+        if (removePlayerFromLobby(socket)) {
+          io.to(player.lobby).emit('join lobby', getLobbyInfo(player.lobby))
+        }
+        delete player.lobby;
+        socket.emit('player info', player);
         io.emit('lobbies', lobbies);
         saveLobby();
         savePlayer();

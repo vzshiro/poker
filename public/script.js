@@ -74,12 +74,14 @@ function showLobbies() {
 function lobbyInfoHTML(lobby) {
   let html =
   `<div class="lobby">
-    <div>${lobby.name} (Players: ${lobby.players.length})</div>
+    <h4>${lobby.name}</h4>
     <div>
+      <p>Players: ${lobby.players.length}</p>
       <p>Starting Token <span class="fa fa-money-bill"></span>: ${lobby.token}</p>
       <p>Big Blind <span class="fa fa-dollar-sign"></span>: ${lobby.bigBlind}</p>
       <p>Small Blind <span class="fa fa-hand-holding-usd"></span>: ${lobby.smallBlind}</p>
-      <p>Status: ${lobby.status}</p>
+      ${lobby.type == 'private' ? `<p style="font-weight: bold">Type: ${lobby.type}</p>` : ""}
+      
     </div>
     <button class="btn btn-primary" onclick="joinLobby('${lobby.id}')">Join Lobby</button>
   </div>`
@@ -102,7 +104,7 @@ function joinLobby(lobbyId) {
       generateLobby();
     } else {
       alert("Failed to join lobby");
-      generateLobby()
+      showLobbies();
     }
   });
 }
@@ -159,8 +161,9 @@ function createLobby(lobbyType) {
     lobby.smallBlind = smallBlind;
     lobby.bigBlind = bigBlind;
     socket.emit("create lobby", lobby, function(lobbyInfo) {
-      player.lobby = lobbyInfo.id;
-      lobbyPlayers.lobby = lobbyInfo
+      player.lobby = lobbyInfo.lobby.id;
+      lobbyPlayers.lobby = lobbyInfo.lobby;
+      lobbyPlayers.code = lobbyInfo.code;
       lobbyPlayers[player.id] = player;
       savePlayer();
       generateLobby();
@@ -369,6 +372,7 @@ function generateLobby() {
   lobbiesElement.innerHTML =
   `<div class="lobby col-sm-12">
     <h2>Lobby: ${lobbyPlayers.lobby.name}</h2>
+    ${lobbyPlayers.lobby.type == 'private' ? `<h2>Code: <span style="color: ${player.color}">${lobbyPlayers.code}</span></h2>` : ""}
   </div>
   <div class="col-md-6 col-sm-6">
     <h3>Players:</h3>
