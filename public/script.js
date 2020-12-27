@@ -609,6 +609,10 @@ function showPlayerModal() {
 }
 $("#vibrate-helper").on('change', function () {
   notify = this.checked;
+  if (notify) {
+    document.getElementById("notification-audio").muted = false
+    document.getElementById("notification-audio").play();
+  }
 })
 $(function () {
   socket = io();
