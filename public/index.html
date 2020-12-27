@@ -12,7 +12,7 @@
     <source src="ding.ogg" type="audio/ogg">
 </audio>
 <div id="sequence-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Select Player Sequence (Clockwise)</h5>
@@ -30,7 +30,7 @@
     </div>
 </div>
 <div id="winner-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Select Winner (Multi-select)</h5>
@@ -47,7 +47,7 @@
     </div>
 </div>
 <div id="history-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Lobby History</h5>
@@ -64,7 +64,7 @@
     </div>
 </div>
 <div id="info-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Game Info</h5>
@@ -73,116 +73,30 @@
                 </button>
             </div>
             <div class="modal-body">
-                <h3>Complete Rules Explanation</h3>
-                <h4>General Practice</h4>
-                <div>
-                    <ol>
-                        <li>The game follows general Texas Hold'em rules.</li>
-                        <li>The game is played as **No Limit** and no raise limit as well (Can have more than 10 raise in a single stage).</li>
-                        <li>Unfortunately, split pots are not implemented yet.</li>
-                        <li>Kicker applies to hands without sets, similarly described <a href="https://howtoplaypokerinfo.com/kicker" target="_blank">here</a>.</li>
-                    </ol>
-                </div>
-                <h4>Stages</h4>
-                <p>Dealer is identified with a hand sparkles icon <span class="fa fa-hand-sparkles"></span>, the next player after dealer will have small blind, subsequent player will have big blind. Stage always start with the next active player after Dealer.</p>
-                <div class="bold-ol">
-                    <ol>
-                        <li>Preflop
-                            <ul>
-                                <li>(All players are dealt 1 card in selected sequence) x 2</li>
-                            </ul>
-                        </li>
-                        <li>Flop
-                            <ul>
-                                <li>(1 card is dealt to the table and 1 card is burned) x 3</li>
-                            </ul>
-                        </li>
-                        <li>Turn
-                            <ul>
-                                <li>1 card is dealt to the table and 1 card is burned</li>
-                            </ul>
-                        </li>
-                        <li>River
-                            <ul>
-                                <li>1 card is dealt to the table and 1 card is burned</li>
-                            </ul>
-                        </li>
-                        <li>Showdown
-                            <ul>
-                                <li>Every players' (except those who folded) hands are shown to all players (include those who folded)</li>
-                            </ul>
-                        </li>
-                    </ol>
-                </div>
-                <p style="font-style: italic;">A stage ends on the Dealer when there is no raise; otherwise, ends on the last player who raised.</p>
-                <h3>Hand Rankings</h3>
-                <p>Before you start reading, you need to understand that every player only competes with their 5 best cards.</p>
-                <p style="font-style: italic;">Suit is never considered during kicker.</p>
-                <p style="font-style: italic;">When tie is not specified, it means there are multiple winners and they split the pot.</p>
-                <div class="bold-ol">
-                    <ol>
-                        <li>Royal Flush (10, J, Q, K, A - Same Suit)
-                            <ul>
-                                <li>Tie only happens when the flush is on the board</li>
-                            </ul>
-                        </li>
-                        <li>Straight Flush (9, 10, J, Q, K - Same Suit)
-                            <ul>
-                                <li>If tie happens, highest straight wins (K wins Q)</li>
-                                <li>Suit does not matter</li>
-                            </ul>
-                        </li>
-                        <li>Four of a Kind (7, 7, 7, 7, K)
-                            <ul>
-                                <li>If tie happens, kicker decides (highest card)</li>
-                            </ul>
-                        </li>
-                        <li>Full House (K, K, K, 8, 8)
-                            <ul>
-                                <li>If tie happens, the hand with higher 3 of a Kind wins</li>
-                            </ul>
-                        </li>
-                        <li>Flush (A, K, 2, 7, Q - Same Suit)
-                            <ul>
-                                <li>If tie happens, apply rules similarly to kicker (highest card)</li>
-                            </ul>
-                        </li>
-                        <li>Straight (A, 2, 3, 4, 5)
-                            <ul>
-                                <li>If tie happens, highest card in straight wins</li>
-                                <li>In the case of (A, 2, 3, 4, 5), highest card is <b>5</b>; while (10, J, Q, K, A), highest card is <b>A</b></li>
-                            </ul>
-                        </li>
-                        <li>Three of a Kind (8, 8, 8, 9, K)
-                            <ul>
-                                <li>If tie happens, kicker decides (highest card)</li>
-                            </ul>
-                        </li>
-                        <li>Two Pair (K, K, A, A, 10)
-                            <ul>
-                                <li>If tie happens, kicker decides (highest card)</li>
-                            </ul>
-                        </li>
-                        <li>One Pair (10, 10, 6, 5, 2)
-                            <ul>
-                                <li>If tie happens, kicker decides (highest card)</li>
-                            </ul>
-                        </li>
-                        <li>High Card (K, A, 2, 6, 9)
-                            <ul>
-                                <li>If tie happens, kicker decides (highest card)</li>
-                            </ul>
-                        </li>
-                    </ol>
-                </div>
-                <h4>Notes</h4>
-                <div>
-                    <ol>
-                        <li>If all players except 1 folds before the end of River stage, the last player wins automatically (No hands are showed).</li>
-                    </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="player-modal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Player Info</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input id="vibrate-helper" type="checkbox" checked>
+                    <label for="vibrate-helper">Vibrate / Play sound during your turn</label>
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="logout()" data-dismiss="modal">Logout</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -194,7 +108,7 @@
         <div class="icon fa fa-info-circle" onclick="showGameInfo()"></div>
     </div>
     <div id="player-info">
-        <div class="icon" onclick="logout()"></div>
+        <div class="icon" onclick="showPlayerModal()"></div>
         <p class="name"></p>
     </div>
     <div class="main">
@@ -207,7 +121,7 @@
 <script>
     Notification.requestPermission().then(function (permission) {
         if (permission) {
-            if (!localStorage.getItem("permission")) {
+            if (!localStorage.getItem("permission") && window.navigator.vibrate(0)) {
                 alert("Phone will vibrate on your turn");
                 localStorage.setItem("permission", "true");
             }

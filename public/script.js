@@ -3,6 +3,7 @@ var player;
 var lobbiesElement;
 var lobbyPlayers = {};
 var hideCards = false;
+var notify = true;
 const cardText = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const cardSuit = ["S", "H", "C", "D"];
 
@@ -56,7 +57,7 @@ function init() {
   })
 }
 function showLobbies(lobbies) {
-  if (!player.lobby) {
+  if (!player.lobby && player.icon && player.color) {
     lobbiesElement.innerHTML =
     `<div class="col-md-12">
       <button onclick="createLobby('public')" class="btn btn-primary">Create Public Lobby</button>
@@ -120,7 +121,7 @@ function promptForInteger(msg, defValue = "0") {
     }
   }
 }
-function createLobby() {
+function createLobby(lobbyType) {
   let lobby = {
     name: "",
     token: 0,
@@ -128,8 +129,8 @@ function createLobby() {
     bigBlind: 0
   }
   let lobbyName = promptForString("Enter a lobby name", player.name + " Lobby"),
-  startingToken = promptForInteger("Enter starting token", 3000),
-  smallBlind = promptForInteger("Enter small blind", 20),
+  startingToken = promptForInteger("Enter starting token", 5000),
+  smallBlind = promptForInteger("Enter small blind", 25),
   bigBlind = promptForInteger("Enter big blind", 50)
   if (lobbyName && startingToken && smallBlind && bigBlind) {
     while(bigBlind <= smallBlind) {
@@ -175,7 +176,7 @@ function generateGame() {
     ${generateStageInfo(lobbyPlayers.lobby.stage)}
   </div>
   <div class="col-md-12">
-    <h3>Pool: <span class="money-green"><span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.pool}</span></h3>
+    <h3>Pool: <span class="money-green"><span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.pool} ${lobbyPlayers.lobby.highestBet != 0 ? `(Bet: ${lobbyPlayers.lobby.highestBet})` : ""}</span></h3>
   </div>
   ${lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id ?
     `<div class="col-md-12">${generateActions()}<div>`: ""
@@ -183,7 +184,7 @@ function generateGame() {
   lobbiesElement.innerHTML += generateCards();
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
-  if (lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id) {
+  if (notify && lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id) {
     document.getElementById("notification-audio").play();
     window.navigator.vibrate(300);
   }
@@ -292,17 +293,17 @@ function generateActions() {
       html += `<button onclick="performAction('follow')" class="btn btn-primary">Follow <span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet}</button>`
     }
   }
-  if (lobbyPlayers[player.id].token >= lobbyPlayers.lobby.smallBlind && (lobbyPlayers.lobby.highestBet-lobbyPlayers[player.id].currentBet) < lobbyPlayers[player.id].token) {
-    if (lobbyPlayers.lobby.highestBet > lobbyPlayers[player.id].currentBet && lobbyPlayers[player.id].token >= (lobbyPlayers.lobby.highestBet + lobbyPlayers.lobby.smallBlind)) {
-      html += `<button onclick="performAction('follow-raise')" class="btn btn-primary">Follow <span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet} & Raise</button>`
+  if ((lobbyPlayers.lobby.highestBet * 2 - lobbyPlayers[player.id].currentBet) <= lobbyPlayers[player.id].token) {
+    if (lobbyPlayers.lobby.highestBet == lobbyPlayers[player.id].currentBet) {
+      html += `<button onclick="performAction('raise')" class="btn btn-primary ${lobbyPlayers[player.id].token > lobbyPlayers.lobby.bigBlind ? "" : "disabled"}">Raise</button>`
     } else {
-      html += `<button onclick="performAction('raise')" class="btn btn-primary">Raise</button>`
+      html += `<button onclick="performAction('follow-raise')" class="btn btn-primary">Follow <span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet} & Raise</button>`
     }
   }
   if (lobbyPlayers.lobby.highestBet == lobbyPlayers[player.id].currentBet) {
     html += `<button onclick="performAction('check')" class="btn btn-success">Check</button>`
   }
-  if (lobbyPlayers[player.id].token > 0) {
+  if (lobbyPlayers[player.id].token > 0 && lobbyPlayers[player.id].token < Math.max(lobbyPlayers.lobby.pool, lobbyPlayers[player.id].token - (lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet))) {
     html += `<button onclick="performAction('all-in')" class="btn btn-primary">All In</button>`
   }
   html += `<button onclick="performAction('fold')" class="btn btn-danger">Fold</button>`
@@ -318,12 +319,14 @@ function performAction(e) {
       break;
     case 'raise':
     case 'follow-raise':
-      let amount = 0;
-      while(amount < lobbyPlayers.lobby.smallBlind) {
-        amount = promptForInteger(`Enter raise value (min: ${lobbyPlayers.lobby.smallBlind})`, lobbyPlayers.lobby.smallBlind)
-        if (amount == null) {
-          return;
-        }
+      let amount = 0, min = Math.max(lobbyPlayers.lobby.bigBlind, lobbyPlayers.lobby.highestBet), max = Math.min(lobbyPlayers.lobby.pool, lobbyPlayers[player.id].token - (lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet));
+      amount = promptForInteger(`Enter raise value (min: ${min}, max: ${max})`, min)
+      if (amount == null) {
+        return;
+      }
+      if (amount < min || amount > max) {
+        alert(`Please enter a valid amount between ${min} - ${max}`);
+        return;
       }
       action.amount = amount;
       break;
@@ -531,7 +534,10 @@ function selectIcon(e) {
   // sendPlayerInfo();
 }
 function promptIcon() {
-  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot", "ice-cream", "egg", "studiovinari fab", "laugh-squint", "bomb", "brain", "bug", "bbok-medical", "bowling-ball", "candy-cane", "car-crash", "carrot", "church", "dice-five", "dna", "gem", "fire-alt", "jenkins fab", "linux fab", "meteor", "octopus-deploy fab", "paw", "poop", "steam fab", "user-ninja", "user-injured", "wheelchair", "yin-yang"];
+  let icons = ["cat", "dog", "kiwi-bird", "dragon", "fish", "frog", "horse", "spider", "ghost", "gamepad", "toilet-paper", "robot",
+  "ice-cream", "egg", "studiovinari fab", "laugh-squint", "bomb", "brain", "bug", "bbok-medical", "bowling-ball", "candy-cane",
+  "car-crash", "carrot", "church", "dice-five", "dna", "gem", "fire-alt", "jenkins fab", "linux fab", "meteor", "octopus-deploy fab",
+  "paw", "poop", "steam fab", "user-ninja", "user-injured", "wheelchair", "yin-yang"];
   let colors = ["#D50000", "#FF4081", "#9C27B0", "#3F51B5", "#2196F3", "#00BCD4", "#4CAF50", "#FF9800", "#607D8B"]
   shuffleArray(icons);
   shuffleArray(colors);
@@ -579,8 +585,15 @@ function logout() {
 function showGameInfo() {
   $("#info-modal").modal("show");
 }
+function showPlayerModal() {
+  $("#player-modal").modal("show");
+}
+$("#vibrate-helper").on('change', function () {
+  notify = this.checked;
+})
 $(function () {
   socket = io();
+  $("#info-modal .modal-body").load("rules.html");
   init();
 });
 function shuffleArray(array) {

@@ -118,6 +118,9 @@ h3.Preflop {
 .modal-body span.seq {
     float: right;
 }
+.actions .btn {
+    margin-top: 10px;
+}
 .actions .btn ~ .btn {
     margin-left: 15px;
 }

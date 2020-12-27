@@ -32,8 +32,8 @@ function removePlayerFromLobby(socket) {
     if (lobby.host == socket.id) {
       lobby.host = lobby.players[(index+1)%lobby.players.length]
     }
-    if (lobby.raised == socket.id) {
-      lobby.raised = getPrevActingPlayer(socket.id, lobby);
+    if (lobby.endPlayer == socket.id) {
+      lobby.endPlayer = getPrevActingPlayer(socket.id, lobby);
     }
     if (lobby.actingPlayer == socket.id) {
       moveActingPlayer(socket, lobby);
@@ -85,8 +85,8 @@ function rejoinLobby(socket, oldId) {
     if (lobbies[lobbyId].dealer == oldId) {
       lobbies[lobbyId].dealer = socket.id;
     }
-    if (lobbies[lobbyId].raised == oldId) {
-      lobbies[lobbyId].raised = socket.id;
+    if (lobbies[lobbyId].endPlayer == oldId) {
+      lobbies[lobbyId].endPlayer = socket.id;
     }
     socket.join(lobbyId);
     switch (lobbies[lobbyId].status) {
@@ -129,17 +129,18 @@ function getLobbyInfo(lobbyId) {
 }
 function startRound(lobbyId) {
   let lobby = lobbies[lobbyId];
-  let actingIndex = (lobby.round) % lobby.seq.length
+  let dealerIndex = (lobby.round) % lobby.seq.length
   let smallBlindIndex = (lobby.round + 1) % lobby.seq.length
   let bigBlindIndex = (lobby.round + 2) % lobby.seq.length
-  lobby.dealer = lobby.seq[actingIndex];
-  lobby.actingPlayer = lobby.seq[smallBlindIndex];
+  let actingIndex = (lobby.round + 3) % lobby.seq.length
+  lobby.dealer = lobby.seq[dealerIndex];
+  lobby.actingPlayer = lobby.seq[actingIndex];
+  lobby.endPlayer = lobby.seq[bigBlindIndex];
   lobby.fold = [];
   lobby.cards = [];
   lobby.pool = 0;
-  lobby.raised = false;
+  // lobby.raised = false;
   lobbyCards[lobby.id].cards= Array.from({length: 52}, (x, i) => i);
-  // Preflop (When hands are dealt), Flop (First 3 cards), Turn (Next card), River (Last card)
   lobby.stage = stages[0];
   lobby.seq.forEach(p => {
     players[p].currentBet = 0;
@@ -192,51 +193,58 @@ function proceedRound(socket, action) {
   switch (action.name) {
     case 'fold':
       console.log("Fold");
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "fold" });
+      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name });
       lobby.fold.push(socket.id);
-      break;
-    case 'follow':
-      console.log("Follow");
-      var diff = lobby.highestBet - players[socket.id].currentBet;
-      players[socket.id].token -= diff;
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "follow", amount: diff });
-      players[socket.id].currentBet = lobby.highestBet;
-      lobby.pool += diff;
       break;
     case 'check':
       console.log("Check");
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "check" })
+      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name })
       break;
     case 'follow-raise':
-      console.log("Follow Raise");
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "follow-raise", amount: action.amount });
+    case 'follow':
+      console.log("Follow");
       var diff = lobby.highestBet - players[socket.id].currentBet;
-      players[socket.id].token -= diff;
-      players[socket.id].currentBet = lobby.highestBet;
-      lobby.pool += diff;
-      players[socket.id].token -= action.amount;
-      players[socket.id].currentBet += action.amount;
-      lobby.highestBet += action.amount;
-      lobby.pool += action.amount;
-      lobby.raised = socket.id;
-      break;
+      if (players[socket.id].token < diff) {
+        players[socket.id].currentBet = lobby.highestBet;
+        lobby.pool += players[socket.id].token;
+        players[socket.id].token = 0;
+      } else {
+        players[socket.id].token -= diff;
+        players[socket.id].currentBet = lobby.highestBet;
+        lobby.pool += diff;
+      }
+      if (action.name == 'follow') {
+        lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name, amount: diff });
+        break;
+      }
     case 'raise':
       console.log("Raise");
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "raise", amount: action.amount });
-      players[socket.id].token -= action.amount;
-      players[socket.id].currentBet += action.amount;
-      lobby.highestBet += action.amount;
-      lobby.pool += action.amount;
-      lobby.raised = socket.id;
+      if (action.amount <= players[socket.id].token) {
+        lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name, amount: action.amount });
+        players[socket.id].token -= action.amount;
+        players[socket.id].currentBet += action.amount;
+        lobby.highestBet += action.amount;
+        lobby.pool += action.amount;
+        // lobby.raised = socket.id;
+      } else {
+        lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name, amount: players[socket.id].token });
+        players[socket.id].currentBet += players[socket.id].token;
+        lobby.highestBet += players[socket.id].token;
+        lobby.pool += players[socket.id].token;
+        players[socket.id].token = 0;
+        // lobby.raised = socket.id;
+      }
+      lobby.endPlayer = getPrevActingPlayer(socket.id, lobby);
       break;
     case 'all-in':
       console.log("All In");
       let tokenAmount = players[socket.id].token;
-      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: "all-in", amount: tokenAmount });
+      lobby.history.push({ name: players[socket.id].name, stage: lobby.stage, action: action.name, amount: tokenAmount });
       players[socket.id].token = 0;
       if ((tokenAmount+players[socket.id].currentBet) > lobby.highestBet) {
         lobby.highestBet = tokenAmount+players[socket.id].currentBet;
-        lobby.raised = socket.id;
+        // lobby.raised = socket.id;
+        lobby.endPlayer = getPrevActingPlayer(socket.id, lobby);
       }
       players[socket.id].currentBet = lobby.highestBet;
       lobby.pool += tokenAmount;
@@ -250,15 +258,15 @@ function moveActingPlayer(socket, lobby) {
   if (lobby.seq.length-1 == lobby.fold.length) {
     endRound(lobby, lobby.seq.filter(x => !lobby.fold.includes(x)));
   } else {
-    getNextActingPlayer(lobby.actingPlayer, lobby)
-    if (lobby.raised && lobby.actingPlayer == lobby.raised) {
+    if (lobby.actingPlayer == lobby.endPlayer) {
       // Has raise and next acting player is the person who raised
       nextStage(lobby);
-    } else if (!lobby.raised && ((socket.id == lobby.dealer) || (lobby.fold.includes(lobby.dealer) && socket.id == getPrevActingPlayer(lobby.dealer, lobby)))) {
-      // If no raise and current player is dealer OR
-      // If no raise and dealer folds (Current player is right before dealer)
-      nextStage(lobby);
+    // } else if (!lobby.raised && ((socket.id == lobby.dealer) || (lobby.fold.includes(lobby.dealer) && socket.id == getPrevActingPlayer(lobby.dealer, lobby)))) {
+    //   // If no raise and current player is dealer OR
+    //   // If no raise and dealer folds (Current player is right before dealer)
+    //   nextStage(lobby);
     } else {
+      getNextActingPlayer(lobby.actingPlayer, lobby)
       io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
     }
   }
@@ -294,7 +302,8 @@ function nextStage(lobby) {
     askWinner(lobby);
   } else {
     lobby.stage = stages[stageIndex];
-    lobby.raised = false;
+    lobby.endPlayer = lobby.dealer;
+    // lobby.raised = false;
     lobby.highestBet = 0;
     lobby.players.forEach(p => {
       players[p].currentBet = 0;
@@ -430,7 +439,7 @@ io.on('connection', (socket) => {
     }
   })
   socket.on('proceed round', action => {
-    if (lobbies[players[socket.id].lobby]) {
+    if (lobbies[players[socket.id].lobby] && lobbies[players[socket.id].lobby].actingPlayer == socket.id) {
       proceedRound(socket, action);
       saveLobby();
       savePlayer();

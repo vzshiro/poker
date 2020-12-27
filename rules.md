@@ -1,7 +1,7 @@
 # Complete Rules Explanation
 ## General Practice
 1. The game follows general Texas Hold'em rules.
-2. The game is played as **No Limit** and no raise limit as well (Can have more than 10 raise in a single stage).
+2. The game is played as **Pot Limit** and no raise limit (Can have more than 10 raise in a single stage).
 3. Unfortunately, split pots are not implemented yet.
 4. Kicker applies to hands without sets, similarly described [here](https://howtoplaypokerinfo.com/kicker).
 
