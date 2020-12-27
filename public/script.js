@@ -4,7 +4,7 @@ var lobbiesElement;
 var allLobbies;
 var lobbyPlayers = {};
 var hideCards = false;
-var notify = true;
+var notify = true, muted = false;
 const cardText = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const cardSuit = ["S", "H", "C", "D"];
 
@@ -613,10 +613,12 @@ $("#vibrate-helper").on('change', function () {
 $(function () {
   socket = io();
   $("#info-modal .modal-body").load("rules.html");
-  document.getElementById("notification-audio").addEventListener('touchstart', () => {
-    alert("Will play an audio")
-    // this.muted = false
-    this.play();
+  document.body.addEventListener('touchstart', () => {
+    if (muted == false) {
+      document.getElementById("notification-audio").muted = false
+      document.getElementById("notification-audio").play();
+    }
+    muted = true;
   })
   init();
 });
