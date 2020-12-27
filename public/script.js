@@ -100,7 +100,7 @@ function promptForString(msg, defValue = "") {
       return null;
     }
   }
-  return stringInput;
+  return stringInput.trim();
 }
 function promptForInteger(msg, defValue = "0") {
   let stringInput = "";
