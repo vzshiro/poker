@@ -607,7 +607,7 @@ function showGameInfo() {
 function showPlayerModal() {
   $("#player-modal").modal("show");
 }
-$("#vibrate-helper").on('change', function () {
+$("#vibrate-helper").on('click', function () {
   notify = this.checked;
   if (notify) {
     document.getElementById("notification-audio").muted = false
