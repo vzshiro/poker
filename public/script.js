@@ -200,8 +200,9 @@ function generateGame() {
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
   if (notify && lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id) {
-    document.getElementById("notification-audio").muted = false;
-    document.getElementById("notification-audio").play();
+    let elem = document.getElementById("notification-audio");
+    elem.muted = false;
+    elem.play();
     window.navigator.vibrate(500);
   }
 }
@@ -612,6 +613,10 @@ $("#vibrate-helper").on('change', function () {
 $(function () {
   socket = io();
   $("#info-modal .modal-body").load("rules.html");
+  document.getElementById("notification-audio").addEventListener('touchstart', () => {
+    this.muted = false
+    this.play()
+  })
   init();
 });
 function shuffleArray(array) {
