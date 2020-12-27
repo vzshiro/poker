@@ -61,6 +61,7 @@ function showLobbies(lobbies) {
     lobbiesElement.innerHTML =
     `<div class="col-md-12">
       <button onclick="createLobby('public')" class="btn btn-primary">Create Public Lobby</button>
+      <button onclick="createLobby('private')" class="btn btn-primary">Create Private Lobby</button>
     </div>`;
     for (const [key, value] of Object.entries(lobbies)) {
       if (value.status != 'Start') {
@@ -126,7 +127,8 @@ function createLobby(lobbyType) {
     name: "",
     token: 0,
     smallBlind: 0,
-    bigBlind: 0
+    bigBlind: 0,
+    type: lobbyType
   }
   let lobbyName = promptForString("Enter a lobby name", player.name + " Lobby"),
   startingToken = promptForInteger("Enter starting token", 5000),
@@ -185,8 +187,9 @@ function generateGame() {
   lobbiesElement.innerHTML += `<div class="col-md-12 history">${generateHistory()}</div>`
   lobbiesElement.innerHTML += `<div class="col-md-12 history"><button onclick="showHistory()" class="btn btn-secondary">Full History</button></div>`;
   if (notify && lobbyPlayers.lobby.stage != 'Showdown' && lobbyPlayers.lobby.actingPlayer == player.id) {
+    document.getElementById("notification-audio").muted = false;
     document.getElementById("notification-audio").play();
-    window.navigator.vibrate(300);
+    window.navigator.vibrate(500);
   }
 }
 function generatePoker(card) {
@@ -293,9 +296,9 @@ function generateActions() {
       html += `<button onclick="performAction('follow')" class="btn btn-primary">Follow <span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet}</button>`
     }
   }
-  if ((lobbyPlayers.lobby.highestBet * 2 - lobbyPlayers[player.id].currentBet) <= lobbyPlayers[player.id].token) {
+  if ((lobbyPlayers.lobby.highestBet * 2 - lobbyPlayers[player.id].currentBet) <= lobbyPlayers[player.id].token && lobbyPlayers[player.id].token > lobbyPlayers.lobby.bigBlind) {
     if (lobbyPlayers.lobby.highestBet == lobbyPlayers[player.id].currentBet) {
-      html += `<button onclick="performAction('raise')" class="btn btn-primary ${lobbyPlayers[player.id].token > lobbyPlayers.lobby.bigBlind ? "" : "disabled"}">Raise</button>`
+      html += `<button onclick="performAction('raise')" class="btn btn-primary">Raise</button>`
     } else {
       html += `<button onclick="performAction('follow-raise')" class="btn btn-primary">Follow <span class="fa fa-money-bill"></span> ${lobbyPlayers.lobby.highestBet - lobbyPlayers[player.id].currentBet} & Raise</button>`
     }
@@ -331,7 +334,9 @@ function performAction(e) {
       action.amount = amount;
       break;
     case 'all-in':
-      confirmation = confirm("Confirm All In?")
+      if (lobbyPlayers[player.id].token > 0) {
+        confirmation = confirm("Confirm All In?")
+      }
       break;
     case 'check':
       break;
@@ -342,8 +347,8 @@ function performAction(e) {
   if (!confirmation) {
     return;
   }
-  socket.emit('proceed round', action)
   $('div.action').remove();
+  socket.emit('proceed round', action)
 }
 function generateLobby() {
   console.log("Lobby", lobbyPlayers)
