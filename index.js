@@ -302,7 +302,11 @@ function nextStage(lobby) {
     askWinner(lobby);
   } else {
     lobby.stage = stages[stageIndex];
-    lobby.endPlayer = lobby.dealer;
+    if (lobby.fold.includes(lobby.dealer)) {
+        lobby.endPlayer = getPrevActingPlayer(lobby.dealer, lobby);
+    } else {
+        lobby.endPlayer = lobby.dealer;
+    } 
     // lobby.raised = false;
     lobby.highestBet = 0;
     lobby.players.forEach(p => {
