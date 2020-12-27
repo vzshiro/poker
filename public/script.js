@@ -614,8 +614,9 @@ $(function () {
   socket = io();
   $("#info-modal .modal-body").load("rules.html");
   document.getElementById("notification-audio").addEventListener('touchstart', () => {
-    this.muted = false
-    this.play()
+    alert("Will play an audio")
+    // this.muted = false
+    this.play();
   })
   init();
 });
