@@ -12,6 +12,7 @@ app.use('/webfonts', express.static('webfonts', { maxAge: 6000 }))
 
 var lobbies = {};
 var lobbyCards = {};
+var lobbyPassword = {};
 var players = {};
 var stages = ['Preflop', 'Flop', 'Turn', 'River'];
 
@@ -123,6 +124,9 @@ function getLobbyInfo(lobbyId) {
     if (lobbies[lobbyId].stage == 'Showdown' && !lobbies[lobbyId].fold.includes(p)) {
       lobbyInfo[p].cards = players[p].cards
     }
+  }
+  if (lobbies[lobbyId].type == 'private') {
+    lobbyInfo.code = lobbyPassword[lobbyId];
   }
   lobbyInfo.lobby = lobbies[lobbyId];
   return lobbyInfo;
@@ -392,6 +396,9 @@ io.on('connection', (socket) => {
       lobby.players = [socket.id];
       lobby.host = socket.id;
       lobby.status = 'New';
+      if (lobby.type == 'private') {
+        lobbyPassword[lobby.id] = (Math.floor(Math.random() * 10000)).toString().padStart(4, '0');
+      }
       saveLobby(lobby);
       players[socket.id].lobby = lobby.id;
       savePlayer();
@@ -498,6 +505,9 @@ function saveLobby(lobby) {
   fs.writeFileSync('data/lobby_cards.json',JSON.stringify(lobbyCards), (err) => {
     if(err) console.log(err)
   });
+  fs.writeFileSync('data/lobby_pass.json',JSON.stringify(lobbyPassword), (err) => {
+    if(err) console.log(err)
+  });
 }
 
 function reloadData() {
@@ -519,6 +529,16 @@ function reloadData() {
       }
     } catch (err) {
       console.log("Error reading lobby cards file", err)
+    }
+  }
+  if (fs.existsSync('data/lobby_pass.json')) {
+    try {
+      let item = fs.readFileSync('data/lobby_pass.json');
+      if (item.length) {
+        lobbyPassword = JSON.parse(item)
+      }
+    } catch (err) {
+      console.log("Error reading lobby password file", err)
     }
   }
   if (fs.existsSync('data/players.json')) {
