@@ -607,24 +607,26 @@ function showGameInfo() {
 function showPlayerModal() {
   $("#player-modal").modal("show");
 }
-$("#vibrate-helper").on('click', function () {
-  notify = this.checked;
-  if (notify) {
-    document.getElementById("notification-audio").muted = false
-    document.getElementById("notification-audio").play();
-  }
-})
 $(function () {
   socket = io();
   $("#info-modal .modal-body").load("rules.html");
-  document.body.addEventListener('touchstart', () => {
-    if (muted == false) {
+  // window.addEventListener('touchstart', () => {
+  //   if (muted == false) {
+  //     document.getElementById("notification-audio").muted = false
+  //     document.getElementById("notification-audio").play();
+  //   }
+  //   muted = true;
+  // })
+  init();
+  var elem = document.getElementById("vibrate-helper");
+  elem.addEventListener('click', () => {
+    console.log("Clicked", elem)
+    notify = elem.checked;
+    if (notify) {
       document.getElementById("notification-audio").muted = false
       document.getElementById("notification-audio").play();
     }
-    muted = true;
   })
-  init();
 });
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
