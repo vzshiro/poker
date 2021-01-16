@@ -128,9 +128,9 @@ function getLobbyInfo(lobbyId) {
       lobbyInfo[p].cards = players[p].cards
     }
   }
-  if (lobbies[lobbyId].type == 'private') {
+  // if (lobbies[lobbyId].type == 'private') {
     lobbyInfo.code = lobbyPassword[lobbyId];
-  }
+  // }
   lobbyInfo.lobby = lobbies[lobbyId];
   return lobbyInfo;
 }
@@ -356,6 +356,18 @@ function endRound(lobby, winners) {
   startRound(lobby.id);
   io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
 }
+function transferToken(lobby, socketId, playerId, amount) {
+  console.log(socketId, lobby.players)
+  if (lobby.players.includes(playerId) && lobby.players.includes(socketId)) {
+    console.log("Transfer amount")
+    players[socketId].token -= amount;
+    players[playerId].token += amount;
+    lobby.history.push({ name: players[socketId].name, stage: "Token", action: `transfer to ${players[playerId].name}`, amount: amount });
+    savePlayer();
+    saveLobby();
+    io.to(lobby.id).emit('proceed round', getLobbyInfo(lobby.id));
+  }
+}
 io.on('connection', (socket) => {
   console.log('A user connected');
   socket.on('old player', (player, callback) => {
@@ -398,10 +410,12 @@ io.on('connection', (socket) => {
       lobby.id = lobby.name + '_' + socket.id;
       lobby.players = [socket.id];
       lobby.host = socket.id;
-      lobby.status = 'New';
-      if (lobby.type == 'private') {
+      // Lobby Type is now private by default
+      // if (lobby.type == 'private') {
+        lobby.public = false;
         lobbyPassword[lobby.id] = (Math.floor(Math.random() * 10000)).toString().padStart(4, '0');
-      }
+      // }
+      lobby.status = 'New';
       saveLobby(lobby);
       players[socket.id].lobby = lobby.id;
       savePlayer();
@@ -413,7 +427,7 @@ io.on('connection', (socket) => {
   socket.on('join lobby', (lobbyInfo, callback) => {
     if (lobbies[lobbyInfo.id] && lobbies[lobbyInfo.id].status != 'Start') {
       if (!lobbies[lobbyInfo.id].players.includes(socket.id)) {
-        if (lobbies[lobbyInfo.id].type == 'private' && lobbyInfo.code != lobbyPassword[lobbyInfo.id]) {
+        if (!lobbies[lobbyInfo.id].public && lobbyInfo.code != lobbyPassword[lobbyInfo.id]) {
           callback(false);
           return;
         }
@@ -445,19 +459,33 @@ io.on('connection', (socket) => {
   })
   socket.on('start game', lobby => {
     if (lobbies[lobby.id] && lobbies[lobby.id].host == socket.id) {
-      console.log("Start Game", lobby)
-      lobbies[lobby.id].seq = lobby.seq;
-      lobbies[lobby.id].round = 0;
-      lobbies[lobby.id].history = [];
-      lobbies[lobby.id].status = 'Start';
-      lobbies[lobby.id].seq.forEach(p => {
-        players[p].token = lobbies[lobby.id].token;
-      });
-      lobbyCards[lobby.id] = {};
-      startRound(lobby.id);
-      saveLobby();
-      savePlayer();
-      io.to(lobby.id).emit('start game', getLobbyInfo(lobby.id));
+      switch (lobby.game) {
+        case 'texas-poker':
+          console.log("Start Game", lobby)
+          lobbies[lobby.id].seq = lobby.seq;
+          lobbies[lobby.id].round = 0;
+          lobbies[lobby.id].history = [];
+          lobbies[lobby.id].status = 'Start';
+          lobbies[lobby.id].seq.forEach(p => {
+            players[p].token = lobbies[lobby.id].token;
+          });
+          lobbyCards[lobby.id] = {};
+          startRound(lobby.id);
+          saveLobby();
+          savePlayer();
+          io.to(lobby.id).emit('start game', getLobbyInfo(lobby.id));
+          break;
+        case 'token':
+          lobbies[lobby.id].status = 'Start';
+          lobbies[lobby.id].history = [];
+          lobbies[lobby.id].players.forEach(p => {
+            players[p].token = lobbies[lobby.id].token;
+          });
+          saveLobby();
+          savePlayer();
+          io.to(lobby.id).emit('start game', getLobbyInfo(lobby.id));
+          break;
+      }
     }
   })
   socket.on('proceed round', action => {
@@ -470,6 +498,11 @@ io.on('connection', (socket) => {
   socket.on('winners', playerIds => {
     let lobby = lobbies[players[socket.id].lobby]
     endRound(lobby, playerIds);
+  })
+  socket.on('transfer token', action => {
+    console.log("Transfer Token", action)
+    let lobby = lobbies[players[socket.id].lobby]
+    transferToken(lobby, socket.id, action.playerId, action.amount);
   })
   socket.on('logout', () => {
     removePlayerFromLobby(socket);

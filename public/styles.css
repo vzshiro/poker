@@ -145,7 +145,7 @@ h3.Preflop {
 .modal-body .seq-selection ~ .seq-selection, .modal-body .winner-selection ~ .winner-selection {
     margin-top: 10px;
 }
-.modal-body .seq-selection.selected, .modal-body .winner-selection.selected {
+.modal-body .seq-selection.selected, .modal-body .winner-selection.selected, .modal-body .player-selection.selected {
     background-color: lightskyblue;
 }
 .blinking {
