@@ -136,7 +136,7 @@ h3.Preflop {
     max-height: 600px;
     overflow-y: auto;
 }
-.modal-body .seq-selection, .modal-body .winner-selection {
+.modal-body .seq-selection, .modal-body .winner-selection, .modal-body .player-selection {
     text-align: center;
     padding: .75rem;
     border-radius: 10px;
