@@ -586,6 +586,7 @@ function reconnectOldPlayer() {
       savePlayer();
     } else {
       console.log("Fail to reconnect as old player")
+      alert("Failed to reconnect as existing player")
       connectNewPlayer();
     }
   });
