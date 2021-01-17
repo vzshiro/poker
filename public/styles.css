@@ -170,14 +170,11 @@ h3.Preflop {
     font-family: Cards LVMG;
 }
 .poker-cards {
-    font-size: 1.4rem;
+    font-size: 7rem;
     display: inline-block;
-    height: 5rem;
-    width: 3.7rem;
-    /* padding: 0.5rem; */
-    border: 2px solid black;
-    margin: 0.5rem;
-    border-radius: .5rem;
+}
+.poker-cards.red {
+    color: red;
 }
 .poker {
     display: inline-block;

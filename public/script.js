@@ -5,8 +5,12 @@ var allLobbies;
 var lobbyPlayers = {};
 var hideCards = false;
 var notify = true, muted = false;
-const cardText = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-const cardSuit = ["S", "H", "C", "D"];
+const cardHTMLCodes = [
+  ["&#127137;","&#127138;","&#127139;","&#127140;","&#127141;","&#127142;","&#127143;","&#127144;","&#127145;","&#127146;","&#127147;","&#127149;","&#127150;"],
+  ["&#127153;","&#127154;","&#127155;","&#127156;","&#127157;","&#127158;","&#127159;","&#127160;","&#127161;","&#127162;","&#127163;","&#127165;","&#127166;"],
+  ["&#127169;","&#127170;","&#127171;","&#127172;","&#127173;","&#127174;","&#127175;","&#127176;","&#127177;","&#127178;","&#127179;","&#127181;","&#127182;"],
+  ["&#127185;","&#127186;","&#127187;","&#127188;","&#127189;","&#127190;","&#127191;","&#127192;","&#127193;","&#127194;","&#127195;","&#127197;","&#127198;"]
+];
 
 function init() {
   lobbiesElement = document.getElementById("lobbies");
@@ -266,10 +270,10 @@ function generateGame() {
   }
 }
 function generatePoker(card) {
-  return `<div class="poker-cards">
-  ${cardText[card%13]}
-  <span class="poker ${cardSuit[Math.floor(card/13)]}"></span>
-</div>`;
+  return `
+  <div class="poker-cards ${card/13 >= 1 && card/13 < 3 ? "red" : ""}">
+    ${cardHTMLCodes[Math.floor(card/13)][card%13]}
+  </div>`;
 }
 function generateCards() {
   console.log(player)
